@@ -31,10 +31,34 @@ graph_builder.add_edge(START, "chatbot")
 graph_builder.add_edge("chatbot", END)
 
 graph = graph_builder.compile()
-
+# print(graph)
+# print(type(graph))
 tool = DuckDuckGoSearchResults(
     max_results = 5,
     # output_format="list"
 )
 
-print(tool.invoke("Who is current Prime Ministry of Canada"))
+from utils import save_graph
+save_graph(graph, "zxc.png")
+# from PIL import Image
+# from io import BytesIO
+# from IPython.display import Image, display
+# img = Image.open(graph.get_graph().draw_mermaid_png(), "r")
+# Image.save(img, "abc.png")
+
+# img_in_byte = graph.get_graph().draw_mermaid_png()
+# img = Image.frombytes("L", (100, 100), img_in_byte)
+# Image.save(img, "abc.png")
+# with Image.open(BytesIO(img_in_byte)) as img:
+#     img.save('abc.png')
+# img = Image.open(BytesIO(img_in_byte))
+# print(img)
+# img.save('abc.png')
+
+# try:
+#     PIL.Image.save(PIL.Image.open((Image(graph.get_graph().draw_mermaid_png()))), "abc.png")
+# except Exception:
+#     # This requires some extra dependencies and is optional
+#     pass
+
+# print(tool.invoke("Who is current Prime Ministry of Canada"))

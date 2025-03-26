@@ -8,3 +8,5 @@ chainlit==2.4.1
 ollama==0.4.7
 click==8.1.8
 duckduckgo-search==7.5.2
+
+pillow==11.1.0
