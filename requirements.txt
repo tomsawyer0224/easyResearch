@@ -4,7 +4,7 @@ langchain-ollama==0.2.3
 langchain-core==0.3.45
 langgraph==0.3.11
 
-langgraph-supervisor==0.0.14
+# langgraph-supervisor==0.0.14
 
 chainlit==2.4.1
 # pydantic==2.10.6
