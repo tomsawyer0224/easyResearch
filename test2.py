@@ -14,7 +14,9 @@ SYSTEM_MESSAGE = (
     "Please ensure that your responses are socially unbiased and positive in nature."
     "\n\nIf a question does not make any sense, or is not factually coherent, "
     "explain why instead of answering something not correct. "
-    "If you don't know the answer to a question, please use the tools, "
+    "For current events, you should use the tools to search on the internet. "
+    "You may not use the tools for every query, the user may need to chat with you. "
+    "If you don't know the answer to a question, "
     "don't share false information."
 )
 
@@ -26,11 +28,11 @@ tools = [search]
 prompt = ChatPromptTemplate.from_messages(
     [
         ("system", SYSTEM_MESSAGE),
-        ("human", "{question}")
+        # ("human", "{question}")
     ]
 )
 # graph = create_react_agent(model, tools)
-graph = create_react_agent(model, tools, prompt=prompt)
+graph = create_react_agent(model, tools, prompt=SYSTEM_MESSAGE)
 
 
 # save_graph(graph, "abc.png")
@@ -55,13 +57,19 @@ graph = create_react_agent(model, tools, prompt=prompt)
 #         stream_graph_updates(user_input)
 #         break
 
-# inputs = {"messages": [("user", "Who is Prime Minister of Canada?")]}
+# inputs = {"messages": [("user", "Who created you?")]}
 # inputs = {"messages": [("user", "Tell me about the earth quake in myanma")]}
-inputs = {"question": "Who is Prime Minister of Canada?"}
-graph.invoke(inputs)
-# for s in graph.stream(inputs, stream_mode="values"):
-#     message = s["messages"][-1]
-#     if isinstance(message, tuple):
-#         print(message)
-#     else:
-#        message.pretty_print()
+inputs = {
+    "messages": [
+    ("user", "Who is Prime Minister of Canada?"),
+    ("user", "Tell me more about him?")
+    ]
+}
+# inputs = {"messages": [("user", "My name is Tom, what is your name?")]}
+# graph.invoke(inputs)
+for s in graph.stream(inputs, stream_mode="values"):
+    message = s["messages"][-1]
+    if isinstance(message, tuple):
+        print(message)
+    else:
+       message.pretty_print()
