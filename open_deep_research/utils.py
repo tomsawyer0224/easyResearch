@@ -821,6 +821,11 @@ async def linkup_search(search_queries, depth: Optional[str] = "standard"):
         )
 
     return search_results
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 @traceable
 async def duckduckgo_search(search_queries):
     """Perform searches using DuckDuckGo
@@ -831,7 +836,9 @@ async def duckduckgo_search(search_queries):
     Returns:
         List[dict]: List of search results
     """
+    logger.info(f"{search_queries=}")
     async def process_single_query(query):
+        logger.info(f"{query=}")
         # Execute synchronous search in the event loop's thread pool
         loop = asyncio.get_event_loop()
         

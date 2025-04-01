@@ -9,7 +9,8 @@ class Section(BaseModel):
     description: str = Field(
         description="Brief overview of the main topics and concepts to be covered in this section.",
     )
-    research: Literal[True,False] = Field(
+    # research: Literal[True,False] = Field(
+    research: bool = Field(
         description="Whether to perform web research for this section of the report."
     )
     content: str = Field(

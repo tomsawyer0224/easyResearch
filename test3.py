@@ -1,12 +1,23 @@
 from langgraph.checkpoint.memory import MemorySaver
 from open_deep_research.graph import builder
-
+import uuid 
 import asyncio
+
+import logging
+
+logging.basicConfig(
+    # format="{asctime}::{levelname}::{name}::{message}",
+    format="[{levelname}]::{message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+)
+
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
 
-import uuid 
+
 thread = {"configurable": {"thread_id": str(uuid.uuid4()),
                            "search_api": "duckduckgo",
                            "planner_provider": "ollama",
