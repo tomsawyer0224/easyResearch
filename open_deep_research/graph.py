@@ -76,14 +76,17 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig):
     writer_provider = get_config_value(configurable.writer_provider)
     writer_model_name = get_config_value(configurable.writer_model)
     writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider) 
-    structured_llm = writer_model.with_structured_output(Queries)
-
+    # 
+    structured_llm = writer_model.with_structured_output(Queries, method="json_schema")
+    
     # Format system instructions
     system_instructions_query = report_planner_query_writer_instructions.format(topic=topic, report_organization=report_structure, number_of_queries=number_of_queries)
 
     # Generate queries  
-    results = structured_llm.invoke([SystemMessage(content=system_instructions_query),
-                                     HumanMessage(content="Generate search queries that will help with planning the sections of the report.")])
+    results = structured_llm.invoke([
+        SystemMessage(content=system_instructions_query),
+        HumanMessage(content="Generate search queries that will help with planning the sections of the report.")
+    ])
 
     # Web search
     query_list = [query.search_query for query in results.queries]
@@ -116,10 +119,12 @@ async def generate_report_plan(state: ReportState, config: RunnableConfig):
                                       model_provider=planner_provider)
     
     # Generate the report sections
-    # structured_llm = planner_llm.with_structured_output(Sections, method="json_schema")
-    structured_llm = planner_llm.with_structured_output(Sections)
-    report_sections = structured_llm.invoke([SystemMessage(content=system_instructions_sections),
-                                             HumanMessage(content=planner_message)])
+    structured_llm = planner_llm.with_structured_output(Sections, method="json_schema")
+    # structured_llm = planner_llm.with_structured_output(Sections)
+    report_sections = structured_llm.invoke([
+        SystemMessage(content=system_instructions_sections),
+        HumanMessage(content=planner_message)
+    ])
 
     # Get sections
     sections = report_sections.sections
