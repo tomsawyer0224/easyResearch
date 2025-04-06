@@ -19,8 +19,8 @@ graph = builder.compile(checkpointer=memory)
 
 
 thread = {"configurable": {"thread_id": str(uuid.uuid4()),
-                           #"search_api": "duckduckgo",
-                           "search_api": "arxiv",
+                           "search_api": "duckduckgo",
+                           #"search_api": "arxiv",
                            "planner_provider": "ollama",
                            "planner_model": "llama3.2:1b",
                            "writer_provider": "ollama",
