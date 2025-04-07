@@ -53,7 +53,7 @@ edit_message = true
 
 [UI]
 # Name of the assistant.
-name = "eChat"
+name = "eResearcher"
 
 # default_theme = "dark"
 
