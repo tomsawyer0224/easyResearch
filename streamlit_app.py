@@ -1,5 +1,5 @@
 import streamlit as st
-
+from open_deep_research.utils import format_sections
 
 def on_click_generate():
     st.write("You've clicked the 'Generate report' button")
@@ -23,6 +23,7 @@ feedback = st.chat_input("feedback")
 from langgraph.checkpoint.memory import MemorySaver
 from open_deep_research.graph import builder
 import uuid 
+import asyncio
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
@@ -35,6 +36,13 @@ thread = {"configurable": {"thread_id": str(uuid.uuid4()),
                            "writer_model": model,
                            "max_search_depth": 1,
                            }}
-# stream = graph.astream({"topic":topic,}, thread, stream_mode="updates")["generate_report_plan"]["sections"]
-st.write_stream(graph.astream({"topic":topic,}, thread, stream_mode="updates"))
-st.write_stream(stream)
+topic = "Overview of the AI inference market with focus on Fireworks, Together.ai, Groq"
+report_plan_sections = graph.astream({"topic":topic,}, thread, stream_mode="updates")
+#["generate_report_plan"]["sections"]
+async def get_stream(event):
+    report_plan = await anext(report_plan_sections)
+    report_plan = report_plan.get("generate_report_plan").get("sections")
+    # return iter(format_sections(report_plan))
+    return format_sections(report_plan)
+
+st.write_stream(iter(asyncio.run(get_stream(report_plan_sections))))
