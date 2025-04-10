@@ -1,64 +1,60 @@
-from typing import Annotated
+from langgraph.checkpoint.memory import MemorySaver
+from open_deep_research.graph import builder
+import uuid 
+import asyncio
 
-from typing_extensions import TypedDict
+# import logging
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.message import add_messages
-
-from langchain_ollama import ChatOllama
-
-from langchain_community.tools import DuckDuckGoSearchResults
-
-class State(TypedDict):
-    # Messages have the type "list". The `add_messages` function
-    # in the annotation defines how this state key should be updated
-    # (in this case, it appends messages to the list, rather than overwriting them)
-    messages: Annotated[list, add_messages]
+# logging.basicConfig(
+#     # format="{asctime}::{levelname}::{name}::{message}",
+#     format="[{levelname}]::{message}",
+#     style="{",
+#     datefmt="%Y-%m-%d %H:%M:%S",
+#     level=logging.INFO,
+# )
 
 
-graph_builder = StateGraph(State)
-
-llm = ChatOllama(model="llama3.2:1b")
-def chatbot(state: State):
-    return {"messages": [llm.invoke(state["messages"])]}
+memory = MemorySaver()
+graph = builder.compile(checkpointer=memory)
 
 
-# The first argument is the unique node name
-# The second argument is the function or object that will be called whenever
-# the node is used.
-graph_builder.add_node("chatbot", chatbot)
-graph_builder.add_edge(START, "chatbot")
-graph_builder.add_edge("chatbot", END)
+thread = {"configurable": {"thread_id": str(uuid.uuid4()),
+                           "search_api": "duckduckgo",
+                           #"search_api": "arxiv",
+                           "planner_provider": "ollama",
+                           "planner_model": "llama3.2:1b",
+                           "writer_provider": "ollama",
+                           "writer_model": "llama3.2:1b",
+                           "max_search_depth": 1,
+                           }}
 
-graph = graph_builder.compile()
-# print(graph)
-# print(type(graph))
-tool = DuckDuckGoSearchResults(
-    max_results = 5,
-    # output_format="list"
-)
+topic = "Overview of the AI inference market with focus on Fireworks, Together.ai, Groq"
+from open_deep_research.utils import format_sections
+async def main():
+    astream = graph.astream({"topic":topic,}, thread, stream_mode="updates")
+    # print(type(astream))
+    # print(astream)
+    report_plan = await anext(astream)
+    print(format_sections(report_plan.get("generate_report_plan").get("sections")))
+    # async for event in astream:
+    #     for k, v in event.items():
+    #         if k == "generate_report_plan":
+    #             print(format_sections(v["sections"]))
+    #     print("-"*50)
 
-from utils import save_graph
-save_graph(graph, "zxc.png")
-# from PIL import Image
-# from io import BytesIO
-# from IPython.display import Image, display
-# img = Image.open(graph.get_graph().draw_mermaid_png(), "r")
-# Image.save(img, "abc.png")
+    # async for event in graph.astream({"topic":topic,}, thread, stream_mode="updates"):
+    #     print(event)
+    #     print("-"*50)
+    # print("-"*50)
 
-# img_in_byte = graph.get_graph().draw_mermaid_png()
-# img = Image.frombytes("L", (100, 100), img_in_byte)
-# Image.save(img, "abc.png")
-# with Image.open(BytesIO(img_in_byte)) as img:
-#     img.save('abc.png')
-# img = Image.open(BytesIO(img_in_byte))
-# print(img)
-# img.save('abc.png')
+    # from langgraph.types import Command
+    # async for event in graph.astream(Command(resume="Include a revenue estimate (ARR) in the sections"), thread, stream_mode="updates"):
+    #     print(event)
 
-# try:
-#     PIL.Image.save(PIL.Image.open((Image(graph.get_graph().draw_mermaid_png()))), "abc.png")
-# except Exception:
-#     # This requires some extra dependencies and is optional
-#     pass
+    # print("-"*50)
 
-# print(tool.invoke("Who is current Prime Ministry of Canada"))
+    # async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
+    #     print(event)
+asyncio.run(main())
+# if __name__=="__main__":
+#     asyncio.run(main())
