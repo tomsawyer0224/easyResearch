@@ -31,30 +31,19 @@ thread = {"configurable": {"thread_id": str(uuid.uuid4()),
 topic = "Overview of the AI inference market with focus on Fireworks, Together.ai, Groq"
 from open_deep_research.utils import format_sections
 async def main():
-    astream = graph.astream({"topic":topic,}, thread, stream_mode="updates")
-    # print(type(astream))
-    # print(astream)
-    report_plan = await anext(astream)
-    print(format_sections(report_plan.get("generate_report_plan").get("sections")))
-    # async for event in astream:
-    #     for k, v in event.items():
-    #         if k == "generate_report_plan":
-    #             print(format_sections(v["sections"]))
-    #     print("-"*50)
+    async for event in graph.astream({"topic":topic,}, thread, stream_mode="updates"):
+        print(event)
+        print("-"*50)
+    print("-"*50)
 
-    # async for event in graph.astream({"topic":topic,}, thread, stream_mode="updates"):
-    #     print(event)
-    #     print("-"*50)
-    # print("-"*50)
+    from langgraph.types import Command
+    async for event in graph.astream(Command(resume="Include a revenue estimate (ARR) in the sections"), thread, stream_mode="updates"):
+        print(event)
 
-    # from langgraph.types import Command
-    # async for event in graph.astream(Command(resume="Include a revenue estimate (ARR) in the sections"), thread, stream_mode="updates"):
-    #     print(event)
+    print("-"*50)
 
-    # print("-"*50)
-
-    # async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
-    #     print(event)
+    async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
+        print(event)
 asyncio.run(main())
 # if __name__=="__main__":
 #     asyncio.run(main())
