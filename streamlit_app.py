@@ -5,6 +5,12 @@ from open_deep_research.graph import builder
 from langgraph.types import Command
 import uuid 
 import asyncio
+from dataclasses import dataclass 
+
+@dataclass
+class Topic:
+    content: str
+    identity: str = str(uuid.uuid4())
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
@@ -23,7 +29,7 @@ with st.sidebar:
         "Choose a search engine",
         ("duckduckgo", "arxiv")
     )
-    topic = st.chat_input(
+    topic_content = st.chat_input(
     "type your topic",
     )
     
@@ -32,43 +38,95 @@ with st.sidebar:
 feedback = st.chat_input("type your feedback")
 
 # topic = "Overview of the AI inference market with focus on Fireworks, Together.ai, Groq"
-thread = {"configurable": {"thread_id": str(uuid.uuid4()),
-                           "search_api": search_engine,
-                           "planner_provider": "ollama",
-                           "planner_model": model,
-                           "writer_provider": "ollama",
-                           "writer_model": model,
-                           "max_search_depth": 1,
-                           }}
-topics = []
-topics.append(topic)
-st.write(topics[-1])
-# topic_plan = graph.astream({"topic":topic,}, thread, stream_mode="updates")
-async def on_plan():
-    report_plan = graph.astream({"topic":topics[-1]}, thread, stream_mode="updates")
-    # report_plan = topic_plan
-    report_plan = await anext(report_plan)
-    report_plan = report_plan.get("generate_report_plan").get("sections")
-    st.markdown(format_sections(report_plan))
+# thread = {"configurable": {"thread_id": str(uuid.uuid4()),
+#                            "search_api": search_engine,
+#                            "planner_provider": "ollama",
+#                            "planner_model": model,
+#                            "writer_provider": "ollama",
+#                            "writer_model": model,
+#                            "max_search_depth": 1,
+#                            }}
+topic = Topic(content=topic_content)
+# thread = {
+#     "configurable": {
+#         "thread_id": topic.identity,
+#         "search_api": search_engine,
+#         "planner_provider": "ollama",
+#         "planner_model": model,
+#         "writer_provider": "ollama",
+#         "writer_model": model,
+#         "max_search_depth": 1,
+#     }
+# }
 
-async def on_feedback():
-    report_plan = graph.astream(Command(resume=feedback), thread, stream_mode="updates")
-    report_plan = await anext(report_plan)
-    report_plan = report_plan.get("generate_report_plan").get("sections")
-    st.markdown(format_sections(report_plan))
+# st.write(topic.content)
 
-async def on_report():
-    report_plan = graph.astream(Command(resume=True), thread, stream_mode="updates")
-    report_plan = await anext(report_plan)
-    report_plan = report_plan.get("generate_report_plan").get("sections")
-    st.markdown(format_sections(report_plan))
+async def research(topic):
+    thread = {
+        "configurable": {
+            "thread_id": topic.identity,
+            "search_api": search_engine,
+            "planner_provider": "ollama",
+            "planner_model": model,
+            "writer_provider": "ollama",
+            "writer_model": model,
+            "max_search_depth": 1,
+        }
+    }
+    st.write(topic.content)
+    # plan
+    # plan = graph.astream({"topic": topic.content}, thread, stream_mode="updates")
+    # plan = await anext(plan)
+    # plan = plan.get("generate_report_plan").get("sections")
+    # st.markdown(format_sections(plan))
 
-if topic:
-    asyncio.run(on_plan())
-if feedback:
-    asyncio.run(on_feedback())
-if st.session_state.generate_report:
-    asyncio.run(on_report())
+    async for event in graph.astream({"topic": topic.content}, thread, stream_mode="updates"):
+        for k, v in event.items():
+            if k == "generate_report_plan":
+                sections = format_sections(v)
+                st.markdown(st.write_stream(sections))
+    # feedback
+    while not st.session_state.generate_report:
+        async for event in graph.astream(Command(resume=feedback), thread, stream_mode="updates"):
+            for k, v in event.items():
+                if k == "generate_report_plan":
+                    sections = format_sections(v)
+                    st.markdown(st.write_stream(sections))
+
+    # write the final report
+    if st.session_state.generate_report:
+        async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
+            for k, v in event.items():
+                if k == "compile_final_report":
+                    sections = format_sections(v)
+                    st.markdown(st.write_stream(sections))
+        st.session_state.generate_report = False
+asyncio.run(research(topic))
+# async def on_plan():
+#     report_plan = graph.astream({"topic":topic}, thread, stream_mode="updates")
+#     # report_plan = topic_plan
+#     report_plan = await anext(report_plan)
+#     report_plan = report_plan.get("generate_report_plan").get("sections")
+#     st.markdown(format_sections(report_plan))
+
+# async def on_feedback():
+#     report_plan = graph.astream(Command(resume=feedback), thread, stream_mode="updates")
+#     report_plan = await anext(report_plan)
+#     report_plan = report_plan.get("generate_report_plan").get("sections")
+#     st.markdown(format_sections(report_plan))
+
+# async def on_report():
+#     report_plan = graph.astream(Command(resume=True), thread, stream_mode="updates")
+#     report_plan = await anext(report_plan)
+#     report_plan = report_plan.get("generate_report_plan").get("sections")
+#     st.markdown(format_sections(report_plan))
+
+# if topic:
+#     asyncio.run(on_plan())
+# if feedback:
+#     asyncio.run(on_feedback())
+# if st.session_state.generate_report:
+#     asyncio.run(on_report())
 
 # report_plan_sections = graph.astream({"topic":topic,}, thread, stream_mode="updates")
 # #["generate_report_plan"]["sections"]
