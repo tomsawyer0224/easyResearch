@@ -83,23 +83,30 @@ async def research(topic):
     async for event in graph.astream({"topic": topic.content}, thread, stream_mode="updates"):
         for k, v in event.items():
             if k == "generate_report_plan":
-                sections = format_sections(v)
-                st.markdown(st.write_stream(sections))
+                sections = format_sections(list(v.values())[0])
+                st.markdown(sections)
     # feedback
     while not st.session_state.generate_report:
-        async for event in graph.astream(Command(resume=feedback), thread, stream_mode="updates"):
-            for k, v in event.items():
-                if k == "generate_report_plan":
-                    sections = format_sections(v)
-                    st.markdown(st.write_stream(sections))
+        if feedback:
+            async for event in graph.astream(Command(resume=feedback), thread, stream_mode="updates"):
+                for k, v in event.items():
+                    if k == "generate_report_plan":
+                        sections = format_sections(list(v.values())[0])
+                        st.markdown(sections)
 
     # write the final report
     if st.session_state.generate_report:
         async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
             for k, v in event.items():
                 if k == "compile_final_report":
-                    sections = format_sections(v)
-                    st.markdown(st.write_stream(sections))
+                    # print(v)
+                    # print("-"*30)
+                    # print(list(v.values())[0])
+                    # print("+"*30)
+                    # sections = format_sections(list(v.values())[0])
+                    # st.markdown(sections)
+                    final_report = list(v.values())[0]
+                    st.markdown(final_report)
         st.session_state.generate_report = False
 asyncio.run(research(topic))
 # async def on_plan():
