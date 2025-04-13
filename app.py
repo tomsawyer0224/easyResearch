@@ -3,16 +3,18 @@ from open_deep_research.utils import format_sections
 from langgraph.checkpoint.memory import MemorySaver
 from open_deep_research.graph import builder
 from langgraph.types import Command
+from langgraph.graph.state import CompiledStateGraph
 import uuid 
 import asyncio
-from typing import Any
+from typing import Any, cast
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
 
 if "thread" not in st.session_state:
     st.session_state.thread = None
-
+if "graph" not in st.session_state:
+    st.session_state.graph = graph
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -42,21 +44,21 @@ with st.sidebar:
 
 feedback = st.chat_input("feedback on the plan")
 
-async def generate_plan(topic: str, thread: dict[str, Any]):
+async def generate_plan(graph: CompiledStateGraph, topic: str, thread: dict[str, Any]):
     async for event in graph.astream({"topic": topic}, thread, stream_mode="updates"):
         for k, v in event.items():
             if k == "generate_report_plan":
                 sections = format_sections(list(v.values())[0])
                 return sections
 
-async def process_feedback(feedback: str, thread: dict[str, Any]):
+async def process_feedback(graph: CompiledStateGraph, feedback: str, thread: dict[str, Any]):
     async for event in graph.astream(Command(resume=feedback), thread, stream_mode="updates"):
         for k, v in event.items():
             if k == "generate_report_plan":
                 sections = format_sections(list(v.values())[0])
                 return sections
 
-async def generate_report(thread):
+async def generate_report(graph: CompiledStateGraph, thread):
     async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
         for k, v in event.items():
             if k == "compile_final_report":
@@ -80,7 +82,7 @@ if topic:
     }
     st.session_state.thread = thread
     with st.spinner("Generating report plan...", show_time=True):
-        plan = asyncio.run(generate_plan(topic, thread))
+        plan = asyncio.run(generate_plan(st.session_state.graph, topic, thread))
         with st.chat_message("assistant"):
             st.markdown(plan)
         st.session_state.messages.append({"role": "assistant", "content": plan})
@@ -88,18 +90,18 @@ if feedback:
     st.chat_message("user").markdown(feedback)
     st.session_state.messages.append({"role": "user", "content": feedback})
     thread = st.session_state.thread
-    st.write(f"thread: {thread}")
+    # st.write(f"thread: {thread}")
     with st.spinner("Processing your feedback...", show_time=True):
-        plan = asyncio.run(process_feedback(feedback, thread))
+        plan = asyncio.run(process_feedback(st.session_state.graph, feedback, thread))
         with st.chat_message("assistant"):
             st.markdown(plan)
         st.session_state.messages.append({"role": "assistant", "content": plan})
 
 if st.session_state.final_report:
     thread = st.session_state.thread
-    st.write(f"thread: {thread}")
+    # st.write(f"thread: {thread}")
     with st.spinner("Generating the final report...", show_time=True):
-        final_report = asyncio.run(generate_report(thread))
+        final_report = asyncio.run(generate_report(st.session_state.graph, thread))
         with st.chat_message("assistant"):
             st.markdown(final_report)
         st.session_state.messages.append({"role": "assistant", "content": final_report})

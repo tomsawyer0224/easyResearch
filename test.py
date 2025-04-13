@@ -48,6 +48,13 @@ async def main():
 
     print("-"*50)
 
+    async for event in graph.astream(Command(resume="modify sections content if needded"), thread, stream_mode="updates"):
+        print(type(event))
+        print(event)
+        print("+"*30)
+
+    print("-"*50)
+
     async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
         print(type(event))
         print(event)
