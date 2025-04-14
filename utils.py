@@ -17,7 +17,7 @@ def parse_config(config_file: str):
     return config
 
 
-def pull_model(models: List[str] = ["llama3.2:1b", "gemma:2b"]):
+def pull_model(models: List[str] = ["llama3.2", "llama3.2:1b"]):
     """
     pull models from a list
     """
@@ -28,7 +28,7 @@ def pull_model(models: List[str] = ["llama3.2:1b", "gemma:2b"]):
 
 def generate_Dockerfile(
     base_image: str = "python:3.12-slim",
-    models: List[str] = ["llama3.2", "qwen2.5:3b"],
+    models: List[str] = ["llama3.2", "llama3.2:1b"],
 ):
     """
     generate Dockerfile
@@ -54,10 +54,10 @@ def generate_Dockerfile(
         "COPY . .\n"
         "# install dependencies\n"
         "RUN pip install -U pip && pip install --no-cache-dir -r requirements.txt\n"
-        "# expose a port so that chainlit can listen on\n"
-        "EXPOSE 8080\n"
+        "# expose a port so that streamlit can listen on\n"
+        "EXPOSE 8501\n"
         "# specify default commands\n"
-        'CMD ["/bin/bash", "-c", "ollama serve & sleep 10 && chainlit run app.py -h --host 0.0.0.0 --port 8080"]'
+        'CMD ["/bin/bash", "-c", "ollama serve & sleep 10 && streamlit run app.py --server.port 8501 --server.headless true"]'
     )
     with open("Dockerfile", "w") as dockerfile:
         dockerfile.write(content)

@@ -8,7 +8,14 @@ import uuid
 import asyncio
 from typing import Any, cast
 
+from utils import parse_config, pull_model
+
 st.set_page_config("eResearcher", page_icon="./public/favicon.png")
+
+# pull ollama models
+config = parse_config("./config.yaml")
+models = config["models"]
+pull_model(models)
 
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
@@ -32,7 +39,7 @@ def on_click_generate_report():
 with st.sidebar:
     model = st.selectbox(
         "Choose a model",
-        ("llama3.2", "qwen2.5:3b", "llama3.2:1b")
+        models
     )
     search_engine = st.selectbox(
         "Choose a search engine",
@@ -72,6 +79,7 @@ async def generate_report(graph: CompiledStateGraph, thread):
 
 # topic to research
 if topic:
+    st.session_state.topic = topic
     st.chat_message("user").markdown(topic)
     st.session_state.messages.append({"role": "user", "content": topic})
     thread = {

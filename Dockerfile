@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 # install dependencies
 RUN pip install -U pip && pip install --no-cache-dir -r requirements.txt
-# expose a port so that chainlit can listen on
+# expose a port so that streamlit can listen on
 EXPOSE 8501
 # specify default commands
-CMD ["/bin/bash", "-c", "ollama serve & sleep 10 && streamlit run app.py --server.address 0.0.0.0 --server.port 8501"]
+CMD ["/bin/bash", "-c", "ollama serve & sleep 10 && streamlit run app.py --server.port 8501 --server.headless true"]
