@@ -28,7 +28,7 @@ def pull_model(models: List[str] = ["llama3.2:1b", "gemma:2b"]):
 
 def generate_Dockerfile(
     base_image: str = "python:3.12-slim",
-    models: List[str] = ["llama3.2:1b", "gemma:2b"],
+    models: List[str] = ["llama3.2", "qwen2.5:3b"],
 ):
     """
     generate Dockerfile

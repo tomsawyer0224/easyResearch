@@ -8,6 +8,8 @@ import uuid
 import asyncio
 from typing import Any, cast
 
+st.set_page_config("eResearcher", page_icon="./public/favicon.png")
+
 memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
 
@@ -30,7 +32,7 @@ def on_click_generate_report():
 with st.sidebar:
     model = st.selectbox(
         "Choose a model",
-        ("llama3.2:1b", "qwen2.5:0.5b")
+        ("llama3.2", "qwen2.5:3b", "llama3.2:1b")
     )
     search_engine = st.selectbox(
         "Choose a search engine",
@@ -44,6 +46,7 @@ with st.sidebar:
 
 feedback = st.chat_input("feedback on the plan")
 
+# function to generate an original plan
 async def generate_plan(graph: CompiledStateGraph, topic: str, thread: dict[str, Any]):
     async for event in graph.astream({"topic": topic}, thread, stream_mode="updates"):
         for k, v in event.items():
@@ -51,6 +54,7 @@ async def generate_plan(graph: CompiledStateGraph, topic: str, thread: dict[str,
                 sections = format_sections(list(v.values())[0])
                 return sections
 
+# function to process any feeback on the plan
 async def process_feedback(graph: CompiledStateGraph, feedback: str, thread: dict[str, Any]):
     async for event in graph.astream(Command(resume=feedback), thread, stream_mode="updates"):
         for k, v in event.items():
@@ -58,6 +62,7 @@ async def process_feedback(graph: CompiledStateGraph, feedback: str, thread: dic
                 sections = format_sections(list(v.values())[0])
                 return sections
 
+# function to generate the final report
 async def generate_report(graph: CompiledStateGraph, thread):
     async for event in graph.astream(Command(resume=True), thread, stream_mode="updates"):
         for k, v in event.items():
@@ -65,7 +70,7 @@ async def generate_report(graph: CompiledStateGraph, thread):
                 final_report = list(v.values())[0]
                 return final_report
 
-# thread = None    
+# topic to research
 if topic:
     st.chat_message("user").markdown(topic)
     st.session_state.messages.append({"role": "user", "content": topic})
@@ -81,25 +86,27 @@ if topic:
         }
     }
     st.session_state.thread = thread
+    # generate the an original plan
     with st.spinner("Generating report plan...", show_time=True):
-        plan = asyncio.run(generate_plan(st.session_state.graph, topic, thread))
+        original_plan = asyncio.run(generate_plan(st.session_state.graph, topic, thread))
         with st.chat_message("assistant"):
-            st.markdown(plan)
-        st.session_state.messages.append({"role": "assistant", "content": plan})
+            st.markdown(original_plan)
+        st.session_state.messages.append({"role": "assistant", "content": original_plan})
+
+# feedback to modify the plan
 if feedback:
     st.chat_message("user").markdown(feedback)
     st.session_state.messages.append({"role": "user", "content": feedback})
     thread = st.session_state.thread
-    # st.write(f"thread: {thread}")
     with st.spinner("Processing your feedback...", show_time=True):
-        plan = asyncio.run(process_feedback(st.session_state.graph, feedback, thread))
+        new_plan = asyncio.run(process_feedback(st.session_state.graph, feedback, thread))
         with st.chat_message("assistant"):
-            st.markdown(plan)
-        st.session_state.messages.append({"role": "assistant", "content": plan})
+            st.markdown(new_plan)
+        st.session_state.messages.append({"role": "assistant", "content": new_plan})
 
+# generate the final report
 if st.session_state.final_report:
     thread = st.session_state.thread
-    # st.write(f"thread: {thread}")
     with st.spinner("Generating the final report...", show_time=True):
         final_report = asyncio.run(generate_report(st.session_state.graph, thread))
         with st.chat_message("assistant"):
