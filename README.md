@@ -5,6 +5,12 @@ A simple researchbot with the ability to research on the internet.
 
 This project creates a researchbot program that runs locally on CPU using the LangGraph, Ollama, and Streamlit frameworks.
 
+## How it works
+
+Base on your topic, the researchbot will create a plan and it can be modified by your feedbacks. Finally, the report will be generated if you get satify.
+
+![alt text](demo/workflow.png)
+![alt text](demo/researchbot.png)
 ## Getting Started
 
 ### Dependencies
@@ -43,8 +49,13 @@ docker run --name eResearcher --rm -d -p 8501:8501 researchbot
 ```
 docker stop eResearcher
 ```
-> [!Note]
-> For later use, you can publish the docker image to [Docker hub](https://hub.docker.com/). Because the researchbot runs on CPU, you should build the researchbot using minimal Ollama models (specified in the 'config.yaml' file).
+## Limitations
+Perfomance of the researchbot is not so good because:
+
+* The small ollama models is not enough powerful.
+* The free search tools (duckduckgo, arxiv) may return unexpected results or sometime throw errors (e.g "Rate Limit" of DuckDuckGo).
+
+This is CPU-based application, it takes very long time to finish, and we can't use large models to improve the quality of reports.
 
 ## License
 
@@ -52,3 +63,4 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ## Acknowledgments
 * [open-deep-research](https://github.com/langchain-ai/open_deep_research)
 * [Streamlit](https://docs.streamlit.io/)
+* [LangGraph](https://langchain-ai.github.io/langgraph/tutorials/introduction/)
