@@ -44,6 +44,7 @@ or in background mode:
 ```
 docker run --name eResearcher --rm -d -p 8501:8501 researchbot
 ```
+[!Note]: 'researchbot' is name of docker image that was specified in the './config.yaml' file.
 * Access the application at http://localhost:8501.
 * To stop the researchbot, run command:
 ```
