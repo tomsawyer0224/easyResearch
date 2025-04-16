@@ -3,11 +3,11 @@ A simple researchbot with the ability to research on the internet.
 
 ## Description
 
-This project creates a researchbot program that runs locally on CPU using the LangGraph, Ollama, and Streamlit frameworks.
+This project creates a researchbot program that runs locally on CPU using the LangGraph, Ollama, Streamlit frameworks, and was inspired by the [open-deep-research](https://github.com/langchain-ai/open_deep_research) library.
 
 ## How it works
 
-Base on your topic, the researchbot will create a plan and it can be modified by your feedbacks. Finally, the report will be generated if you get satify.
+Based on your topic, the researchbot will create a plan, and it can be modified by your feedback. Finally, the report will be generated if you are satisfied.
 
 ![alt text](demo/workflow.png)
 ![alt text](demo/researchbot.png)
@@ -32,7 +32,7 @@ source init.sh
 ```
 3. Modify the 'config.yaml' file if needed. By default, the researchbot is powered by 'llama3.2' and 'llama3.2:1b' in the Ollama framework. When using it, you can choose either of them.
 
-4. Build a Docker image by running the command (on a terminal inside the 'easyResearch' directory):
+4. Build a Docker image by running the command:
 ```
 python build_docker.py
 ```
@@ -50,12 +50,12 @@ docker run --name eResearcher --rm -d -p 8501:8501 researchbot
 docker stop eResearcher
 ```
 ## Limitations
-Perfomance of the researchbot is not so good because:
+The performance of the researchbot may not be good because:
 
-* The small ollama models is not enough powerful.
-* The free search tools (duckduckgo, arxiv) may return unexpected results or sometime throw errors (e.g "Rate Limit" of DuckDuckGo).
+* The little ollama models lack sufficient power.
+* The free search tools (duckduckgo, arxiv) may return unexpected results or sometimes throw errors (e.g "Rate Limit" of DuckDuckGo).
 
-This is CPU-based application, it takes very long time to finish, and we can't use large models to improve the quality of reports.
+This application is CPU-based, takes a very long time to complete, and we are unable to employ huge models to enhance report quality.
 
 ## License
 
