@@ -415,14 +415,17 @@ def compile_final_report(state: ReportState):
     Returns:
         Dict containing the complete report
     """
-
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     # Get sections
     sections = state["sections"]
     completed_sections = {s.name: s.content for s in state["completed_sections"]}
-
+    logger.info(f"***completed_sections***:\n{completed_sections}")
     # Update sections with completed content while maintaining original order
     for section in sections:
         section.content = completed_sections[section.name]
+        logger.info(f"***completed_sections[{section.name}]***:\n{completed_sections[section.name]}")
 
     # Compile final report
     all_sections = "\n\n".join([s.content for s in sections])
