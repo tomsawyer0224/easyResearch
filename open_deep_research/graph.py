@@ -37,6 +37,10 @@ from open_deep_research.utils import (
     select_and_execute_search
 )
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 ## Nodes -- 
 
 async def generate_report_plan(state: ReportState, config: RunnableConfig):
@@ -219,7 +223,7 @@ def generate_queries(state: SectionState, config: RunnableConfig):
     # Generate queries  
     queries = structured_llm.invoke([SystemMessage(content=system_instructions),
                                      HumanMessage(content="Generate search queries on the provided topic.")])
-
+    logger.info(f"**********queries:\n{queries}")
     return {"search_queries": queries.queries}
 
 async def search_web(state: SectionState, config: RunnableConfig):
@@ -252,7 +256,7 @@ async def search_web(state: SectionState, config: RunnableConfig):
 
     # Search the web with parameters
     source_str = await select_and_execute_search(search_api, query_list, params_to_pass)
-
+    logger.info(f"**********source_str:\n{source_str}")
     return {"source_str": source_str, "search_iterations": state["search_iterations"] + 1}
 
 def write_section(state: SectionState, config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
@@ -298,7 +302,8 @@ def write_section(state: SectionState, config: RunnableConfig) -> Command[Litera
     
     # Write content to the section object  
     section.content = section_content.content
-
+    logger.info(f"**********section.name={section.name}")
+    logger.info(f"**********section.content={section.content}")
     # Grade prompt 
     section_grader_message = ("Grade the report and consider follow-up questions for missing information. "
                               "If the grade is 'pass', return empty strings for all follow-up queries. "
@@ -415,17 +420,17 @@ def compile_final_report(state: ReportState):
     Returns:
         Dict containing the complete report
     """
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+    # import logging
+    # logging.basicConfig(level=logging.INFO)
+    # logger = logging.getLogger(__name__)
     # Get sections
     sections = state["sections"]
     completed_sections = {s.name: s.content for s in state["completed_sections"]}
-    logger.info(f"***completed_sections***:\n{completed_sections}")
+    # logger.info(f"***completed_sections***:\n{completed_sections}")
     # Update sections with completed content while maintaining original order
     for section in sections:
         section.content = completed_sections[section.name]
-        logger.info(f"***completed_sections[{section.name}]***:\n{completed_sections[section.name]}")
+        # logger.info(f"***completed_sections[{section.name}]***:\n{completed_sections[section.name]}")
 
     # Compile final report
     all_sections = "\n\n".join([s.content for s in sections])
