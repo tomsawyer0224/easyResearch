@@ -13,5 +13,6 @@ def build():
     cmd = f"docker build -t {config['image_name']} ."
     os.system(cmd)
 
+
 if __name__ == "__main__":
     build()
